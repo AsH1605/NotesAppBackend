@@ -43,3 +43,12 @@ export const createUser = async(
     })
     return newUser;
 }
+
+export const getUserByUsername = async(username: string): Promise<User> => {
+    const existingUser = (await knex('server_user').select<User[]>('*').where({username: username}))[0]
+    if(! existingUser) {
+        console.log("user does not exist")
+        throw new Error("user does not exist")
+    }
+    return existingUser
+}
