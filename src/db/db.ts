@@ -2,7 +2,7 @@ import 'dotenv/config'
 import knexPkg, { Knex } from 'knex'
 let knex: Knex;
 
-export const setupDBConnection = () => {
+export const setupDBConnection = async() => {
   const port = 0
   const dbConfig: Knex.PgConnectionConfig = {
     host: process.env.DB_HOST,
