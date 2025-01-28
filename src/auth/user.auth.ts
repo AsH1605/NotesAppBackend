@@ -1,12 +1,17 @@
+import { NextFunction, Request, RequestHandler, Response } from "express";
 import jwt from "jsonwebtoken";
 
-export function verifyJwtToken(token: string): string | undefined{
+export const verifyJwtToken: RequestHandler = (req: Request, res: Response, next: NextFunction): void => {
     try {
-        var decoded = jwt.verify(token, process.env.JWT_SECRET!)
-        // console.log(JSON.parse(JSON.stringify(decoded)).user_id)
-        return JSON.parse(JSON.stringify(decoded)).user_id
+        const id_token = req?.headers['id_token']as (string | undefined)
+        if(!id_token){
+            res.status(401).json({message: "No id_token"})
+        }
+        var decoded = jwt.verify(id_token!, process.env.JWT_SECRET!)
+        req.headers['user_id'] = JSON.parse(JSON.stringify(decoded)).user_id
+        next()
     } catch (error) {
         console.log(error)
-        return undefined
+        res.status(401).json({error})
     }
 }

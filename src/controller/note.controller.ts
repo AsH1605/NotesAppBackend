@@ -1,7 +1,8 @@
 import { RequestHandler } from "express";
 import { verifyJwtToken } from "../auth/user.auth";
-import { createNewNote, getAllNotesByUserId } from "../db/note.db";
+import { createNewNote, getAllNotesByUserId, getNoteByNoteId } from "../db/note.db";
 import { Note } from "../models/note.model";
+import { CreateNoteRequest } from "../dto/note.dto";
 
 export const createNote: RequestHandler= (req, res): void => {
     // 1. extract token from request header
@@ -13,8 +14,12 @@ export const createNote: RequestHandler= (req, res): void => {
     // 7. create CreateNoteResponse interface
     // 8. return saved note as response
     // verifyJwtToken()
-    const {id_token, title, content} = req?.body
-    const user_id = Number(verifyJwtToken(id_token))
+    // console.log(req?.body)
+    // console.log(req?.headers)
+    // console.log(req?.query)
+    // console.log(req?.params)
+    const {title, content}: CreateNoteRequest = req?.body
+    const user_id = Number(req.headers['user_id'])
     // console.log(user_id)
     if(!user_id){
         console.log("User unauthorized")
@@ -23,7 +28,7 @@ export const createNote: RequestHandler= (req, res): void => {
 
     createNewNote(user_id, title, content).then(note => {
         console.log("Note created successfully")
-
+        console.log(note)
         const noteResponse: Note = {
             id: note.id,
             user_id: note.user_id,
@@ -32,7 +37,7 @@ export const createNote: RequestHandler= (req, res): void => {
             created_at: note.created_at,
             last_updated_at: note.last_updated_at
         }
-        res.status(200).json({noteResponse})
+        res.status(200).json(noteResponse)
     }).catch((error) => {
         console.log("Note creation failed because ", error)
         res.status(400).json({ message: error.message })
@@ -41,8 +46,8 @@ export const createNote: RequestHandler= (req, res): void => {
 
 export const getAllNotes: RequestHandler = (req, res) => {
     try {
-        const {id_token} = req?.body
-        const user_id = Number(verifyJwtToken(id_token))
+        const {id_token, note_id, title, content} = req?.body
+        const user_id = Number(req.headers['user_id'])
         if(!user_id){
             console.log("User unauthorized")
             res.status(401).json({message: "User_id does not exist"})
@@ -53,6 +58,27 @@ export const getAllNotes: RequestHandler = (req, res) => {
             res.status(200).json({message: "No notes saved yet"})
         }
         res.status(200).json({message: "All notes are fetched"})
+    } catch (error) {
+        res.status(400).json({message: "There was some issue in fetching note"})
+    }
+}
+
+export const getNote: RequestHandler = (req, res) =>  {
+    try {
+        const {id_token, note_id, title, content} = req?.body
+        const user_id = Number(req.headers['user_id'])
+        if(!user_id){
+            console.log("User unauthorized")
+            res.status(401).json({message: "User_id does not exist"})
+        }
+        const note = getNoteByNoteId(user_id, note_id)
+        if(!note){
+            console.log("No note with such Id")
+            res.status(200).json({message: "No note with such Id"})
+        }
+        res.status(200).json({message: "Note fetched"})
+
+
     } catch (error) {
         res.status(400).json({message: "There was some issue in fetching note"})
     }

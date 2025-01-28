@@ -1,3 +1,4 @@
+import { string } from "joi";
 import { Note } from "../models/note.model";
 import { knex } from "./db";
 
@@ -12,13 +13,13 @@ export const createNewNote = async(
         throw new Error("Note with title already exists")
     }
     const currentDate = new Date()
-    const newNote = await knex('note').insert<Note>({
+    const newNote = (await knex('note').insert({
         user_id: user_id,
         title: title,
         content: content,
         created_at: currentDate,
         last_updated_at: currentDate
-    })
+    }).returning<Note[]>('*'))[0]
     return newNote;
 }
 
@@ -31,4 +32,24 @@ export const getAllNotesByUserId = async(
         console.log(allNotes[i])
     }
     return allNotes;
+}
+
+export const getNoteByNoteId = async(
+    user_id: number,
+    note_id: number
+): Promise<Note> => {
+    const note: Note = (await knex('note').select<Note[]>('*').where({user_id: user_id, id: note_id}))[0]
+    console.log(note);
+    return note;
+}
+
+export const editNote = async(
+    user_id: number,
+    note_id: number,
+    title: string,
+    content: string
+): Promise<Note> => {
+    const note: Note = (await knex('note').select<Note[]>('*').where({user_id: user_id, id: note_id}))[0]
+    console.log(note);
+    return note;
 }
