@@ -21,3 +21,14 @@ export const createNewNote = async(
     })
     return newNote;
 }
+
+export const getAllNotesByUserId = async(
+    user_id: number
+): Promise<Note[]> =>{
+    const allNotes: Note[] = await knex('note').select<Note[]>('*').where({user_id : user_id})
+
+    for(var i = 0; i < allNotes.length; i++){
+        console.log(allNotes[i])
+    }
+    return allNotes;
+}
