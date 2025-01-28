@@ -43,13 +43,10 @@ export const getNoteByNoteId = async(
     return note;
 }
 
-export const editNote = async(
+export const deleteNoteById = async(
     user_id: number,
     note_id: number,
-    title: string,
-    content: string
-): Promise<Note> => {
-    const note: Note = (await knex('note').select<Note[]>('*').where({user_id: user_id, id: note_id}))[0]
-    console.log(note);
-    return note;
+): Promise<boolean> => {
+    const deletedNoteCount = await knex('note').delete().where({user_id: user_id, id: note_id})
+    return deletedNoteCount!=0;
 }

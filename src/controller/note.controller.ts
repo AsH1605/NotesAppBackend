@@ -1,10 +1,10 @@
 import { RequestHandler } from "express";
 import { verifyJwtToken } from "../auth/user.auth";
-import { createNewNote, getAllNotesByUserId, getNoteByNoteId } from "../db/note.db";
+import { createNewNote, deleteNoteById, getAllNotesByUserId, getNoteByNoteId } from "../db/note.db";
 import { Note } from "../models/note.model";
 import { CreateNoteRequest } from "../dto/note.dto";
 
-export const createNote: RequestHandler= (req, res): void => {
+export const createNote: RequestHandler = (req, res): void => {
     // 1. extract token from request header
     // 2. get user_id from token 
     // 3. if user_id is undefined return 401 unauthorized
@@ -18,12 +18,12 @@ export const createNote: RequestHandler= (req, res): void => {
     // console.log(req?.headers)
     // console.log(req?.query)
     // console.log(req?.params)
-    const {title, content}: CreateNoteRequest = req?.body
+    const { title, content }: CreateNoteRequest = req?.body
     const user_id = Number(req.headers['user_id'])
     // console.log(user_id)
-    if(!user_id){
+    if (!user_id) {
         console.log("User unauthorized")
-        res.status(401).json({message: "User_id does not exist"})
+        res.status(401).json({ message: "User_id does not exist" })
     }
 
     createNewNote(user_id, title, content).then(note => {
@@ -45,41 +45,51 @@ export const createNote: RequestHandler= (req, res): void => {
 }
 
 export const getAllNotes: RequestHandler = (req, res) => {
-    try {
-        const {id_token, note_id, title, content} = req?.body
-        const user_id = Number(req.headers['user_id'])
-        if(!user_id){
-            console.log("User unauthorized")
-            res.status(401).json({message: "User_id does not exist"})
-        }
-        const notes = getAllNotesByUserId(user_id)
-        if(!notes){
-            console.log("No notes saved")
-            res.status(200).json({message: "No notes saved yet"})
-        }
-        res.status(200).json({message: "All notes are fetched"})
-    } catch (error) {
-        res.status(400).json({message: "There was some issue in fetching note"})
+    const user_id = Number(req.headers['user_id'])
+    if (!user_id) {
+        console.log("User unauthorized")
+        res.status(401).json({ message: "User_id does not exist" })
     }
+    getAllNotesByUserId(user_id).then(notes => {
+        if (!notes) {
+            console.log("No notes saved")
+            res.status(200).json({ message: "No notes saved yet" })
+        }
+        res.status(200).json(notes)
+    }).catch(error => {
+        res.status(400).json({ message: "There was some issue in fetching note" })
+    })
 }
 
-export const getNote: RequestHandler = (req, res) =>  {
-    try {
-        const {id_token, note_id, title, content} = req?.body
-        const user_id = Number(req.headers['user_id'])
-        if(!user_id){
-            console.log("User unauthorized")
-            res.status(401).json({message: "User_id does not exist"})
-        }
-        const note = getNoteByNoteId(user_id, note_id)
-        if(!note){
-            console.log("No note with such Id")
-            res.status(200).json({message: "No note with such Id"})
-        }
-        res.status(200).json({message: "Note fetched"})
-
-
-    } catch (error) {
-        res.status(400).json({message: "There was some issue in fetching note"})
+export const getNote: RequestHandler = (req, res) => {
+    const note_id = Number(req?.params['note_id'])
+    const user_id = Number(req.headers['user_id'])
+    if (!user_id) {
+        console.log("User unauthorized")
+        res.status(401).json({ message: "User_id does not exist" })
     }
+    getNoteByNoteId(user_id, note_id).then(note =>{
+        if (!note) {
+            console.log("No note with such Id")
+            res.status(200).json({ message: "No note with such Id" })
+        }
+        res.status(200).json(note)
+    }).catch (error=> {
+        res.status(400).json({ message: "There was some issue in fetching note" })
+    }) 
+}
+
+export const deleteNote: RequestHandler = async(req, res) => {
+    const user_id = Number(req.headers['user_id'])
+    const note_id = Number(req?.body['note_id'])
+    if (!user_id || !note_id){
+        console.log("User_id and note_id are required")
+    }
+    deleteNoteById(user_id, Number(note_id)).then(() => {
+        console.log("Note deleted successfully")
+        res.status(200).json({message: "Note deleted successfully"})
+    }).catch(error => {
+        console.log(error)
+        res.status(400).json({ error })
+    })
 }
