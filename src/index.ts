@@ -1,6 +1,7 @@
 import express, { Request, Response } from 'express';
 import { userRouter } from './routes/user.route';
 import { setupDBConnection } from './db/db';
+import { noteRouter } from './routes/note.route';
 
 const startServer = async() => {
     console.log("Starting server")
@@ -10,6 +11,7 @@ const startServer = async() => {
     const app = express();
 
     app.use('/users', userRouter);
+    app.use('/notes', noteRouter);
 
     const port = process.env.PORT || 3000;
 

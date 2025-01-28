@@ -31,7 +31,7 @@ export const loginUser: RequestHandler = (req, res):void => {
         }
 
         // const secret = process.env.JWT_SECRET!
-        const token = jwt.sign(payload, process.env.JWT_SECRET!)
+        const token = jwt.sign(payload, process.env.JWT_SECRET!, { expiresIn: '24h'})
 
         const loginResponse: LoginUserResponse = {
             id_token: token,
