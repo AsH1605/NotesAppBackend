@@ -1,5 +1,5 @@
 import { Request, RequestHandler, Response } from "express"
-import { createUser, getUserByUsername } from "../db/user.db"
+import { createUser, getAuthenticatedUser, getUserByUsername, IncorrectPasswordError } from "../db/user.db"
 import jwt from "jsonwebtoken";
 import { LoginUserResponse } from "../dto/login.dto";
 import { AuthPayload } from "../models/authPayload.model";
@@ -18,21 +18,12 @@ export const registerUser: RequestHandler = (req, res, next): void => {
 
 export const loginUser: RequestHandler = (req, res):void => {
     const { username, password } = req?.body
-    getUserByUsername(username).then(user => {
-        if(user.password != password){
-            console.log("Incorrect password")
-            return res
-            .status(401)
-            .json({message: "Incorrect password"})
-        }
-
+    getAuthenticatedUser(username, password).then(user => {
         const payload: AuthPayload = {
             user_id: user.id
         }
-
         // const secret = process.env.JWT_SECRET!
         const token = jwt.sign(payload, process.env.JWT_SECRET!, { expiresIn: '24h'})
-
         const loginResponse: LoginUserResponse = {
             id_token: token,
             user: {
@@ -44,11 +35,19 @@ export const loginUser: RequestHandler = (req, res):void => {
                 last_updated_at: user.last_updated_at
             }
         }
-
         return res
             .status(200)
             .json(loginResponse)
     }).catch(error => {
-        res.status(400).json({ message: error.message })
+        if( error instanceof IncorrectPasswordError){
+            console.log("Incorrect password")
+            return res
+            .status(401)
+            .json({message: "Incorrect password"})
+        }
+        else{
+            res.status(400).json({ message: error.message })
+        }
     })
 }
+
