@@ -15,6 +15,6 @@ noteRouter.route("/getNotes").get(getAllNotes)
 
 noteRouter.route("/getNote/:note_id").get(getNote)
 
-noteRouter.route("/deleteNote").delete(deleteNote)
+noteRouter.route("/deleteNote/:note_id").delete(deleteNote)
 
 noteRouter.route("/updateNote/:note_id").put(updateNote)

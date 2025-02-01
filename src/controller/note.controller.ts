@@ -75,7 +75,7 @@ export const getNote: RequestHandler = (req, res) => {
 
 export const deleteNote: RequestHandler = async(req, res) => {
     const user_id = Number(req.headers['user_id'])
-    const note_id = Number(req?.body['note_id'])
+    const note_id = Number(req?.params['note_id'])
     if (!user_id || !note_id){
         console.log("User_id and note_id are required")
     }
