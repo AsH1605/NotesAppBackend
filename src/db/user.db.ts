@@ -2,6 +2,7 @@ import Joi from 'joi';
 import { knex } from './db';
 import { User } from '../models/user.model';
 import bcrypt from "bcrypt";
+import { NetworkErrorCode } from '../dto/errorCodes';
 
 const emailSchema = Joi.object({
     email: Joi.string().email({
@@ -50,7 +51,7 @@ export const getUserByUsername = async(username: string): Promise<User> => {
     const existingUser = (await knex('server_user').select<User[]>('*').where({username: username}))[0]
     if(! existingUser) {
         console.log("user does not exist")
-        throw new Error("user does not exist")
+        throw new UserDoesNoteExistError()
     }
     return existingUser
 }
@@ -59,7 +60,7 @@ export const getAuthenticatedUser = async(username: string, password: string): P
     const existingUser = (await knex('server_user').select<User[]>('*').where({username: username}))[0]
     if(! existingUser) {
         console.log("user does not exist")
-        throw new Error("user does not exist")
+        throw new UserDoesNoteExistError()
     }
     const isPasswordCorrect = await bcrypt.compare(password, existingUser.password)
     // console.log(isPasswordCorrect)
@@ -70,6 +71,13 @@ export const getAuthenticatedUser = async(username: string, password: string): P
 }
 
 export class IncorrectPasswordError extends Error{
+    constructor(){
+        super()
+    }
+}
+
+export class UserDoesNoteExistError extends Error{
+    code: NetworkErrorCode = "USER_DOES_NOT_EXIST"
     constructor(){
         super()
     }

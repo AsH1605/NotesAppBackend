@@ -1,5 +1,5 @@
 import { Request, RequestHandler, Response } from "express"
-import { createUser, getAuthenticatedUser, getUserByUsername, IncorrectPasswordError } from "../db/user.db"
+import { createUser, getAuthenticatedUser, getUserByUsername, IncorrectPasswordError, UserDoesNoteExistError } from "../db/user.db"
 import jwt from "jsonwebtoken";
 import { LoginUserResponse } from "../dto/login.dto";
 import { AuthPayload } from "../models/authPayload.model";
@@ -44,6 +44,11 @@ export const loginUser: RequestHandler = (req, res):void => {
             return res
             .status(401)
             .json({message: "Incorrect password"})
+        }
+        else if(error instanceof UserDoesNoteExistError){
+            return res
+            .status(401)
+            .json({message: "User does not exist", code: error.code})
         }
         else{
             res.status(400).json({ message: error.message })

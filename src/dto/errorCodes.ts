@@ -1,0 +1,1 @@
+export type NetworkErrorCode = "USER_DOES_NOT_EXIST"
