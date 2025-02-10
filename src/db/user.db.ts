@@ -2,7 +2,7 @@ import Joi from 'joi';
 import { knex } from './db';
 import { User } from '../models/user.model';
 import bcrypt from "bcrypt";
-import { NetworkErrorCode } from '../dto/errorCodes';
+import { userAlreadyExistError, userDoesNotExistError, userInvalidEmailError, userInvalidPasswordError, userWrongPasswordError } from '../error/user.error';
 
 const emailSchema = Joi.object({
     email: Joi.string().email({
@@ -23,17 +23,17 @@ export const createUser = async(
     if(existingUser) {
         console.log("user already exists")
         // console.log(existingUser)
-        throw new Error("user already exists")
+        throw userAlreadyExistError
     }
     const emailValidationResult = emailSchema.validate({email})
     if(emailValidationResult.error){
         console.log(emailValidationResult.error)
-        throw new Error(`Invalid email: ${emailValidationResult.error.message}`)
+        throw userInvalidEmailError
     }
     const passwordValidationResult = passwordSchema.validate({password})
     if(passwordValidationResult.error){
         console.log(passwordValidationResult.error)
-        throw new Error(`Invalid email: ${passwordValidationResult.error.message}`)
+        throw userInvalidPasswordError
     }
     const encryptedPassword = await bcrypt.hash(password, 10)
     const currentDate = new Date()
@@ -51,7 +51,7 @@ export const getUserByUsername = async(username: string): Promise<User> => {
     const existingUser = (await knex('server_user').select<User[]>('*').where({username: username}))[0]
     if(! existingUser) {
         console.log("user does not exist")
-        throw new UserDoesNoteExistError()
+        throw userDoesNotExistError
     }
     return existingUser
 }
@@ -60,25 +60,13 @@ export const getAuthenticatedUser = async(username: string, password: string): P
     const existingUser = (await knex('server_user').select<User[]>('*').where({username: username}))[0]
     if(! existingUser) {
         console.log("user does not exist")
-        throw new UserDoesNoteExistError()
+        throw userDoesNotExistError
     }
     const isPasswordCorrect = await bcrypt.compare(password, existingUser.password)
     // console.log(isPasswordCorrect)
     if(!isPasswordCorrect){
-        throw new IncorrectPasswordError()
+        throw userWrongPasswordError
     }
     return existingUser
 }
 
-export class IncorrectPasswordError extends Error{
-    constructor(){
-        super()
-    }
-}
-
-export class UserDoesNoteExistError extends Error{
-    code: NetworkErrorCode = "USER_DOES_NOT_EXIST"
-    constructor(){
-        super()
-    }
-}

@@ -1,8 +1,10 @@
 import { Request, RequestHandler, Response } from "express"
-import { createUser, getAuthenticatedUser, getUserByUsername, IncorrectPasswordError, UserDoesNoteExistError } from "../db/user.db"
+import { createUser, getAuthenticatedUser} from "../db/user.db"
 import jwt from "jsonwebtoken";
 import { LoginUserResponse } from "../dto/login.dto";
 import { AuthPayload } from "../models/authPayload.model";
+import { ApiError } from "../error/ApiError";
+import { UnknownUserError } from "../error/user.error";
 
 export const registerUser: RequestHandler = (req, res, next): void => {
     const { username, email, password } = req?.body
@@ -11,8 +13,12 @@ export const registerUser: RequestHandler = (req, res, next): void => {
         console.log("User created successfully")
         res.status(200).json({ message: "User created successfully" })
     }).catch((error) => {
-        console.log("User creation failed because ", error)
-        res.status(400).json({ message: error.message })
+        if(error instanceof ApiError){
+            return res.status(401).json(error)
+        }
+        else{
+            res.status(400).json(new UnknownUserError(error.message))
+        }
     })
 }
 
@@ -39,19 +45,11 @@ export const loginUser: RequestHandler = (req, res):void => {
             .status(200)
             .json(loginResponse)
     }).catch(error => {
-        if( error instanceof IncorrectPasswordError){
-            console.log("Incorrect password")
-            return res
-            .status(401)
-            .json({message: "Incorrect password"})
-        }
-        else if(error instanceof UserDoesNoteExistError){
-            return res
-            .status(401)
-            .json({message: "User does not exist", code: error.code})
+        if(error instanceof ApiError){
+            return res.status(401).json(error)
         }
         else{
-            res.status(400).json({ message: error.message })
+            res.status(400).json(new UnknownUserError(error.message))
         }
     })
 }

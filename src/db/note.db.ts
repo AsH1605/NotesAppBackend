@@ -1,6 +1,7 @@
 import { string } from "joi";
 import { Note } from "../models/note.model";
 import { knex } from "./db";
+import { noteAlreadyExistsWithTitleError } from "../error/note.error";
 
 export const createNewNote = async(
     user_id: number,
@@ -10,7 +11,7 @@ export const createNewNote = async(
     const existingNote = (await knex('note').select<Note[]>('*').where({title: title}))[0]
     if(existingNote){
         console.log("Note with title already exists")
-        throw new Error("Note with title already exists")
+        throw noteAlreadyExistsWithTitleError
     }
     const currentDate = new Date()
     const newNote = (await knex('note').insert({

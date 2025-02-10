@@ -3,6 +3,8 @@ import { verifyJwtToken } from "../auth/user.auth";
 import { createNewNote, deleteNoteById, getAllNotesByUserId, getNoteByNoteId, updateNoteByNoteId } from "../db/note.db";
 import { Note } from "../models/note.model";
 import { CreateNoteRequest, UpdateNoteRequest } from "../dto/note.dto";
+import { UnknownUserError, userDoesNotExistError } from "../error/user.error";
+import { ApiError } from "../error/ApiError";
 
 export const createNote: RequestHandler = (req, res): void => {
     // 1. extract token from request header
@@ -17,7 +19,7 @@ export const createNote: RequestHandler = (req, res): void => {
     const user_id = Number(req.headers['user_id'])
     if (!user_id) {
         console.log("User unauthorized")
-        res.status(401).json({ message: "User_id does not exist" })
+        res.status(401).json(userDoesNotExistError)
     }
 
     createNewNote(user_id, title, content).then(note => {
@@ -33,8 +35,12 @@ export const createNote: RequestHandler = (req, res): void => {
         }
         res.status(200).json(noteResponse)
     }).catch((error) => {
-        console.log("Note creation failed because ", error)
-        res.status(400).json({ message: error.message })
+        if(error instanceof ApiError){
+            return res.status(401).json(error)
+        }
+        else{
+            res.status(400).json(new UnknownUserError(error.message))
+        }
     })
 }
 
