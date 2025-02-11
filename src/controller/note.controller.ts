@@ -5,6 +5,7 @@ import { Note } from "../models/note.model";
 import { CreateNoteRequest, UpdateNoteRequest } from "../dto/note.dto";
 import { UnknownUserError, userDoesNotExistError } from "../error/user.error";
 import { ApiError } from "../error/ApiError";
+import { not } from "joi";
 
 export const createNote: RequestHandler = (req, res): void => {
     // 1. extract token from request header
@@ -15,25 +16,17 @@ export const createNote: RequestHandler = (req, res): void => {
     // 6. save note to datbase with user_id
     // 7. create CreateNoteResponse interface
     // 8. return saved note as response
-    const { title, content }: CreateNoteRequest = req?.body
+    const { title, content, latitude, longitude, address }: CreateNoteRequest = req?.body
     const user_id = Number(req.headers['user_id'])
     if (!user_id) {
         console.log("User unauthorized")
         res.status(401).json(userDoesNotExistError)
     }
 
-    createNewNote(user_id, title, content).then(note => {
+    createNewNote(user_id, title, content, latitude, longitude, address).then(note => {
         console.log("Note created successfully")
         console.log(note)
-        const noteResponse: Note = {
-            id: note.id,
-            user_id: note.user_id,
-            title: note.title,
-            content: note.content,
-            created_at: note.created_at,
-            last_updated_at: note.last_updated_at
-        }
-        res.status(200).json(noteResponse)
+        res.status(200).json(note)
     }).catch((error) => {
         if(error instanceof ApiError){
             return res.status(401).json(error)
@@ -104,15 +97,7 @@ export const updateNote: RequestHandler = async(req, res) => {
     updateNoteByNoteId(user_id, note_id, newFields.title, newFields.content).then(note =>{
         console.log("Note updated successfully")
         console.log(note)
-        const noteResponse: Note = {
-            id: note.id,
-            user_id: note.user_id,
-            title: note.title,
-            content: note.content,
-            created_at: note.created_at,
-            last_updated_at: note.last_updated_at
-        }
-        res.status(200).json(noteResponse)
+        res.status(200).json(note)
     }).catch((error) => {
         console.log("Note updation failed because ", error)
         res.status(400).json({ message: error.message })

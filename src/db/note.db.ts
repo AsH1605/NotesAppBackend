@@ -6,7 +6,10 @@ import { noteAlreadyExistsWithTitleError } from "../error/note.error";
 export const createNewNote = async(
     user_id: number,
     title: string,
-    content: string
+    content: string,
+    latitude?: number,
+    longitude?: number,
+    address?: string
 ): Promise<Note> => {
     const existingNote = (await knex('note').select<Note[]>('*').where({title: title}))[0]
     if(existingNote){
@@ -19,7 +22,10 @@ export const createNewNote = async(
         title: title,
         content: content,
         created_at: currentDate,
-        last_updated_at: currentDate
+        last_updated_at: currentDate,
+        latitude: latitude,
+        longitude: longitude,
+        address: address,
     }).returning<Note[]>('*'))[0]
     return newNote;
 }
