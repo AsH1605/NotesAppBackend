@@ -1,5 +1,5 @@
 import bodyParser from "body-parser";
-import { Router } from "express";555555555555555555
+import { Router } from "express";
 import { loginUser, registerUser } from "../controller/user.controller";
 
 export const userRouter = Router()
