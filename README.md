@@ -1,7 +1,7 @@
 
 # CookieNote Backend
 
-This is the backend service for **CookieNote**, a note-taking application. The backend is built using modern web technologies, ensuring scalability, maintainability, and secure handling of user data.
+This is the backend service for **[CookieNote](https://github.com/AsH1605/CookieNote)**, a note-taking application. The backend is built using modern web technologies, ensuring scalability, maintainability, and secure handling of user data.
 
 ## Tech Stack
 | Component       | Technology |
